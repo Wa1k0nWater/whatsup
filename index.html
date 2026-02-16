@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsUp.city — AI-Powered Civic Platform</title>
     
+    <!-- Dynamic Favicon matching the logo -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2325d366%22/><path d=%22M50 20c-16.5 0-30 13.5-30 30 0 5.4 1.5 10.4 4.1 14.8L20 80l16.2-4.3c4.1 2.3 8.8 3.6 13.8 3.6 16.5 0 30-13.5 30-30s-13.5-30-30-30z%22 fill=%22white%22/></svg>">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -108,6 +111,31 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
         }
+        
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+
+        /* Infinite Marquee Animation */
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        .animate-marquee {
+            display: flex;
+            width: max-content;
+            animation: marquee 40s linear infinite;
+        }
+        
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
+        
+        /* Gradient masks for smooth fade edges on marquee */
+        .marquee-mask {
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
     </style>
 </head>
 <body>
@@ -118,7 +146,6 @@
         const { motion, AnimatePresence } = window.Motion;
         
         // --- FIREBASE CONFIGURATION ---
-        // TODO: Replace with your actual config from Firebase Console -> Project Settings
         const firebaseConfig = {
             apiKey: "YOUR_ACTUAL_API_KEY_HERE", 
             authDomain: "thane-whatsup.firebaseapp.com",
@@ -182,7 +209,6 @@
                 setLoading(true);
 
                 try {
-                    // Try to save to Firestore if configured
                     if (db) {
                         await db.collection('leads').add({
                             ...formData,
@@ -190,7 +216,6 @@
                             source: 'web_modal'
                         });
                     } else {
-                        // Simulate delay for demo purposes if no DB
                         await new Promise(r => setTimeout(r, 1500));
                         console.log("Lead captured (Simulated):", formData);
                     }
@@ -207,10 +232,8 @@
 
             return (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-                    {/* Backdrop */}
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
                     
-                    {/* Modal Content */}
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -241,7 +264,7 @@
                                 </div>
                             ) : (
                                 <form onSubmit={handleSubmit} className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-1">
                                             <label className="text-sm font-medium text-slate-700">Full Name</label>
                                             <input required name="name" value={formData.name} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="John Doe" />
@@ -257,7 +280,7 @@
                                         <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="john@municipalcorp.gov.in" />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-1">
                                             <label className="text-sm font-medium text-slate-700">Organization / City</label>
                                             <input required name="organization" value={formData.organization} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="Thane Municipal Corp" />
@@ -284,10 +307,22 @@
             );
         };
 
+        const ClientLogo = ({ url, name }) => (
+            <div 
+                className="flex flex-col items-center justify-center p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-100 min-w-[160px] sm:min-w-[200px] h-32 mx-3"
+            >
+                <div className="h-16 w-full flex items-center justify-center mb-2">
+                    <img src={url} alt={name} className="max-h-full max-w-full object-contain filter hover:brightness-110 transition-all" />
+                </div>
+                <p className="text-[10px] text-center font-medium text-slate-600 leading-tight line-clamp-2">{name}</p>
+            </div>
+        );
+
         function App() {
             const [selectedLang, setSelectedLang] = useState('hindi');
             const [hoveredWard, setHoveredWard] = useState(null);
             const [isDemoOpen, setIsDemoOpen] = useState(false);
+            const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
             useEffect(() => {
                 lucide.createIcons();
@@ -308,6 +343,15 @@
                 { id: 'english', name: 'English', script: 'English', sample: 'There is a pothole' }
             ];
 
+            const clients = [
+                { name: "Pimpri-Chinchwad Municipal Corporation", url: "https://firebasestorage.googleapis.com/v0/b/dwellers-j829ks.appspot.com/o/pcmc.jpeg?alt=media&token=99b8ed67-d591-42a8-aef7-7fd99174fd48" },
+                { name: "Thane Municipal Corporation", url: "https://firebasestorage.googleapis.com/v0/b/dwellers-j829ks.appspot.com/o/tmc.png?alt=media&token=409fbaab-ceb4-4f6a-915e-e32d71d28d55" },
+                { name: "Divisional Commissioner Office Pune", url: "https://firebasestorage.googleapis.com/v0/b/dwellers-j829ks.appspot.com/o/div.jpg?alt=media&token=f5a1c1d3-1f20-4f0e-b4c6-a676a05553e4" },
+                { name: "Pune City Police", url: "https://firebasestorage.googleapis.com/v0/b/dwellers-j829ks.appspot.com/o/plice.jpg?alt=media&token=6242467d-dda6-4c2e-b9e4-291f3fab5938" },
+                { name: "Pune Zilla Parishad", url: "https://firebasestorage.googleapis.com/v0/b/dwellers-j829ks.appspot.com/o/zp.jpg?alt=media&token=8caea001-ae4b-47cf-9125-6f7873c6e0b7" },
+                { name: "Mumbai Metropolitan Region Slum Rehabilitation Authority", url: "https://firebasestorage.googleapis.com/v0/b/dwellers-j829ks.appspot.com/o/sr.jpg?alt=media&token=aa833f56-a027-46e9-b52f-e68e218ef00a" }
+            ];
+
             return (
                 <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-white text-slate-900 overflow-x-hidden">
                     
@@ -315,18 +359,20 @@
 
                     {/* Navigation */}
                     <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-                        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center shadow-lg">
                                     <Icon name="message-circle" size={22} className="text-white" />
                                 </div>
                                 <div>
-                                    <span className="text-xl font-bold text-slate-900">WhatsUp.city</span>
-                                    <span className="text-xs text-slate-500 ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Made in India for the World 🌏</span>
+                                    <span className="text-lg sm:text-xl font-bold text-slate-900 block leading-tight">WhatsUp.city</span>
+                                    <span className="text-[10px] text-slate-500 bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-medium hidden sm:inline-block">Made in India for the World 🌏</span>
                                 </div>
                             </div>
+
+                            {/* Desktop Menu */}
                             <div className="hidden md:flex gap-8 text-sm font-medium text-slate-700">
-                                <a href="#features" className="hover: text-brand-600 transition-colors">Features</a>
+                                <a href="#features" className="hover:text-brand-600 transition-colors">Features</a>
                                 <a href="#languages" className="hover:text-brand-600 transition-colors">Languages</a>
                                 <a href="#wards" className="hover:text-brand-600 transition-colors">Ward Management</a>
                                 <a href="#analytics" className="hover:text-brand-600 transition-colors">Analytics</a>
@@ -335,23 +381,55 @@
                                 Schedule Demo
                                 <Icon name="calendar" size={16} />
                             </Button>
+
+                            {/* Mobile Menu Button */}
+                            <div className="md:hidden">
+                                <button 
+                                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                                    className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+                                >
+                                    <Icon name={isMobileMenuOpen ? "x" : "menu"} size={24} />
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Mobile Menu Dropdown */}
+                        <AnimatePresence>
+                            {isMobileMenuOpen && (
+                                <motion.div 
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="md:hidden bg-white border-t border-gray-100 shadow-lg overflow-hidden"
+                                >
+                                    <div className="flex flex-col p-4 space-y-4 font-medium text-slate-700">
+                                        <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="py-2 hover:text-brand-600">Features</a>
+                                        <a href="#languages" onClick={() => setIsMobileMenuOpen(false)} className="py-2 hover:text-brand-600">Languages</a>
+                                        <a href="#wards" onClick={() => setIsMobileMenuOpen(false)} className="py-2 hover:text-brand-600">Ward Management</a>
+                                        <a href="#analytics" onClick={() => setIsMobileMenuOpen(false)} className="py-2 hover:text-brand-600">Analytics</a>
+                                        <Button variant="primary" className="w-full justify-center" onClick={() => { setIsDemoOpen(true); setIsMobileMenuOpen(false); }}>
+                                            Schedule Demo
+                                        </Button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </nav>
 
                     {/* Hero Section */}
-                    <section className="relative pt-28 pb-20 px-6 overflow-hidden">
+                    <section className="relative pt-28 pb-10 sm:pb-20 px-4 sm:px-6 overflow-hidden">
                         {/* Animated Background Elements */}
                         <div className="absolute top-20 left-10 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
                         <div className="absolute bottom-0 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
                         
                         <div className="max-w-7xl mx-auto">
-                            <div className="text-center space-y-6 mb-16">
+                            <div className="text-center space-y-6 mb-12 sm:mb-16">
                                 <motion.div
                                     initial={{ opacity:  0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.8 }}
                                 >
-                                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-saffron/10 to-indian-green/10 border border-saffron/20 rounded-full text-sm font-semibold text-slate-700">
+                                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-saffron/10 to-indian-green/10 border border-saffron/20 rounded-full text-xs sm:text-sm font-semibold text-slate-700">
                                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                                         Trusted by Indian Municipalities
                                     </span>
@@ -361,21 +439,21 @@
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.8, delay: 0.1 }}
-                                    className="text-5xl md:text-7xl font-bold leading-tight"
+                                    className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight"
                                 >
                                     India's First <span className="gradient-text">Multilingual AI</span>
                                     <br />for Civic Governance
-                                </motion. h1>
+                                </motion.h1>
                                 
                                 <motion.p 
                                     initial={{ opacity:  0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.8, delay: 0.2 }}
-                                    className="text-xl text-slate-600 max-w-3xl mx-auto"
+                                    className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto px-2"
                                 >
                                     WhatsApp-native platform that understands <strong>22 Indian languages</strong>, processes voice notes, 
                                     images & locations.  Manages ward-wise operations, tax collections, and citizen services at scale.
-                                </motion. p>
+                                </motion.p>
 
                                 <motion.div 
                                     initial={{ opacity:  0, y: 20 }}
@@ -383,11 +461,10 @@
                                     transition={{ duration: 0.8, delay: 0.3 }}
                                     className="flex flex-wrap gap-4 justify-center pt-4"
                                 >
-                                    <Button variant="primary" className="text-lg px-8 py-4" onClick={() => setIsDemoOpen(true)}>
+                                    <Button variant="primary" className="text-lg px-8 py-4 w-full sm:w-auto" onClick={() => setIsDemoOpen(true)}>
                                         Get Started for Your City
                                         <Icon name="arrow-right" size={20} />
                                     </Button>
-            
                                 </motion.div>
                             </div>
 
@@ -396,60 +473,87 @@
                                 initial={{ opacity: 0, y: 40 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.8, delay: 0.4 }}
-                                className="glass-morphism rounded-2xl p-8 grid grid-cols-2 md: grid-cols-4 gap-8"
+                                className="glass-morphism rounded-2xl p-6 sm:p-8 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8"
                             >
                                 <div className="text-center">
-                                    <p className="text-4xl font-bold text-brand-600">22</p>
-                                    <p className="text-sm text-slate-600 mt-1">Indian Languages</p>
+                                    <p className="text-3xl sm:text-4xl font-bold text-brand-600">22</p>
+                                    <p className="text-xs sm:text-sm text-slate-600 mt-1">Indian Languages</p>
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-4xl font-bold text-brand-600">5L+</p>
-                                    <p className="text-sm text-slate-600 mt-1">Daily Conversations</p>
+                                    <p className="text-3xl sm:text-4xl font-bold text-brand-600">5L+</p>
+                                    <p className="text-xs sm:text-sm text-slate-600 mt-1">Daily Conversations</p>
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-4xl font-bold text-brand-600">2,847</p>
-                                    <p className="text-sm text-slate-600 mt-1">Ward Jurisdictions</p>
+                                    <p className="text-3xl sm:text-4xl font-bold text-brand-600">2,847</p>
+                                    <p className="text-xs sm:text-sm text-slate-600 mt-1">Ward Jurisdictions</p>
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-4xl font-bold text-brand-600">₹450Cr</p>
-                                    <p className="text-sm text-slate-600 mt-1">Tax Collected</p>
+                                    <p className="text-3xl sm:text-4xl font-bold text-brand-600">₹450Cr</p>
+                                    <p className="text-xs sm:text-sm text-slate-600 mt-1">Tax Collected</p>
                                 </div>
-                            </motion. div>
+                            </motion.div>
+                        </div>
+                    </section>
+
+                    {/* Infinite Scrolling Government Clients Section */}
+                    <section className="py-12 bg-white border-t border-b border-gray-100 overflow-hidden">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                            <div className="text-center mb-10">
+                                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Trusted By Government Organizations</p>
+                            </div>
+                            
+                            {/* Infinite Marquee Container */}
+                            <div className="relative w-full marquee-mask">
+                                <div className="animate-marquee">
+                                    {/* Set 1 */}
+                                    {clients.map((client, index) => (
+                                        <ClientLogo key={`s1-${index}`} {...client} />
+                                    ))}
+                                    {/* Set 2 (Duplicate for Seamless Loop) */}
+                                    {clients.map((client, index) => (
+                                        <ClientLogo key={`s2-${index}`} {...client} />
+                                    ))}
+                                     {/* Set 3 (Duplicate for Wide Screens) */}
+                                     {clients.map((client, index) => (
+                                        <ClientLogo key={`s3-${index}`} {...client} />
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </section>
 
                     {/* Language Intelligence Section */}
-                    <section id="languages" className="py-20 px-6 bg-gradient-to-b from-white to-slate-50">
+                    <section id="languages" className="py-20 px-4 sm:px-6 bg-gradient-to-b from-white to-slate-50">
                         <div className="max-w-7xl mx-auto">
                             <div className="text-center mb-12">
-                                <h2 className="text-4xl font-bold mb-4">AI That Speaks Every Indian Language</h2>
+                                <h2 className="text-3xl sm:text-4xl font-bold mb-4">AI That Speaks Every Indian Language</h2>
                                 <p className="text-lg text-slate-600">Our AI understands context, dialects, and mixed-language conversations (code-switching)</p>
                             </div>
 
-                            <div className="grid md:grid-cols-2 gap-12 items-center">
+                            <div className="grid lg:grid-cols-2 gap-12 items-center">
                                 {/* Language Grid */}
                                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                                    {languages. map(lang => (
+                                    {languages.map(lang => (
                                         <motion.div
                                             key={lang.id}
                                             whileHover={{ scale: 1.05 }}
                                             onClick={() => setSelectedLang(lang.id)}
-                                            className={`p-4 rounded-xl border-2 transition-all cursor-pointer text-center
+                                            className={`p-3 sm:p-4 rounded-xl border-2 transition-all cursor-pointer text-center
                                                 ${selectedLang === lang.id 
                                                     ? 'border-brand-500 bg-brand-50 shadow-lg' 
                                                     : 'border-gray-200 hover:border-brand-300 bg-white'}`}
                                         >
-                                            <p className="text-2xl font-bold mb-1">{lang.script}</p>
-                                            <p className="text-xs text-gray-600">{lang.name}</p>
+                                            <p className="text-xl sm:text-2xl font-bold mb-1">{lang.script}</p>
+                                            <p className="text-[10px] sm:text-xs text-gray-600">{lang.name}</p>
                                         </motion.div>
                                     ))}
                                 </div>
 
                                 {/* Demo Chat */}
-                                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden mx-auto w-full max-w-md lg:max-w-full">
                                     <div className="bg-gradient-to-r from-brand-600 to-brand-700 p-4 text-white">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
                                                 <Icon name="building" size={20} />
                                             </div>
                                             <div>
@@ -462,9 +566,9 @@
                                     <div className="whatsapp-chat p-4 h-96 overflow-y-auto space-y-3">
                                         {/* User message in selected language */}
                                         <div className="flex justify-end">
-                                            <div className="message-bubble-sent p-3 max-w-[80%] shadow-sm">
+                                            <div className="message-bubble-sent p-3 max-w-[85%] shadow-sm">
                                                 <p className="text-sm font-medium">
-                                                    {languages. find(l => l.id === selectedLang)?.sample}
+                                                    {languages.find(l => l.id === selectedLang)?.sample}
                                                 </p>
                                                 <p className="text-xs text-gray-500 mt-1">+ 📷 Photo attached</p>
                                             </div>
@@ -472,7 +576,7 @@
                                         
                                         {/* AI Response in same language */}
                                         <div className="flex justify-start">
-                                            <div className="message-bubble-received p-3 max-w-[80%] shadow-sm">
+                                            <div className="message-bubble-received p-3 max-w-[85%] shadow-sm">
                                                 <p className="text-sm">
                                                     {selectedLang === 'hindi' && "आपकी शिकायत दर्ज की गई है। टिकट #2024-1234। वार्ड 12 के अधिकारी को सूचित किया गया है। 24 घंटे में समाधान।"}
                                                     {selectedLang === 'english' && "Your complaint has been registered. Ticket #2024-1234. Ward 12 officer has been notified. Resolution within 24 hours."}
@@ -487,7 +591,7 @@
                                                     {selectedLang === 'odia' && "ଆପଣଙ୍କ ଅଭିଯୋଗ ପଞ୍ଜୀକୃତ ହୋଇଛି। ଟିକେଟ୍ #2024-1234। ୱାର୍ଡ 12 ଅଧିକାରୀଙ୍କୁ ସୂଚିତ କରାଯାଇଛି। 24 ଘଣ୍ଟା ମଧ୍ୟରେ ସମାଧାନ।"}
                                                     {selectedLang === 'urdu' && "آپ کی شکایت درج کی گئی۔ ٹکٹ #2024-1234۔ وارڈ 12 افسر کو اطلاع دی گئی۔ 24 گھنٹے میں حل۔"}
                                                 </p>
-                                                <div className="mt-2 flex gap-2">
+                                                <div className="mt-2 flex flex-wrap gap-2">
                                                     <button className="text-xs bg-brand-600 text-white px-3 py-1 rounded-full">Track Status</button>
                                                     <button className="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded-full">Call Officer</button>
                                                 </div>
@@ -500,14 +604,14 @@
                     </section>
 
                     {/* Multimedia Understanding Section */}
-                    <section className="py-20 px-6 bg-slate-900 text-white">
+                    <section id="features" className="py-20 px-4 sm:px-6 bg-slate-900 text-white">
                         <div className="max-w-7xl mx-auto">
                             <div className="text-center mb-16">
-                                <h2 className="text-4xl font-bold mb-4">AI That Understands Everything</h2>
-                                <p className="text-xl text-slate-400">Text, Voice Notes, Images, Videos, and Location — in any language</p>
+                                <h2 className="text-3xl sm:text-4xl font-bold mb-4">AI That Understands Everything</h2>
+                                <p className="text-lg sm:text-xl text-slate-400">Text, Voice Notes, Images, Videos, and Location — in any language</p>
                             </div>
 
-                            <div className="grid md:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                                 <motion.div 
                                     whileHover={{ y: -10 }}
                                     className="glass-morphism rounded-2xl p-6 text-center"
@@ -539,9 +643,9 @@
                                     </div>
                                     <h3 className="font-bold text-lg mb-2">Location Mapping</h3>
                                     <p className="text-sm text-slate-400">Auto-routes to exact ward & field officer based on GPS</p>
-                                </motion. div>
+                                </motion.div>
 
-                                <motion. div 
+                                <motion.div 
                                     whileHover={{ y: -10 }}
                                     className="glass-morphism rounded-2xl p-6 text-center"
                                 >
@@ -556,12 +660,12 @@
                     </section>
 
                     {/* Ward Management System with GeoJSON Map */}
-                    <section id="wards" className="py-20 px-6">
+                    <section id="wards" className="py-20 px-4 sm:px-6">
                         <div className="max-w-7xl mx-auto">
-                            <div className="grid md:grid-cols-2 gap-16 items-center">
+                            <div className="grid lg:grid-cols-2 gap-16 items-center">
                                 <div>
                                     <span className="text-brand-600 font-semibold text-sm uppercase tracking-wide">Ward Management</span>
-                                    <h2 className="text-4xl font-bold mt-2 mb-6">GIS-Enabled Jurisdiction Management</h2>
+                                    <h2 className="text-3xl sm:text-4xl font-bold mt-2 mb-6">GIS-Enabled Jurisdiction Management</h2>
                                     <p className="text-lg text-slate-600 mb-8">
                                         Visualise city operations on a ward-wise GeoJSON map. Auto-assign complaints based on geospatial coordinates.
                                     </p>
@@ -591,11 +695,11 @@
                                 
                                 {/* Simulated GeoJSON Map Visual */}
                                 <div className="relative">
-                                    <div className="bg-slate-900 rounded-3xl p-6 shadow-2xl border-4 border-slate-800 relative overflow-hidden">
+                                    <div className="bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-2xl border-4 border-slate-800 relative overflow-hidden">
                                         {/* Overlay UI */}
                                         <div className="absolute top-8 left-8 z-10 bg-slate-800/90 backdrop-blur px-4 py-2 rounded-lg border border-slate-700">
                                             <div className="text-xs text-slate-400 uppercase tracking-widest">Selected Zone</div>
-                                            <div className="text-white font-bold">{hoveredWard || "Hover over map"}</div>
+                                            <div className="text-white font-bold text-sm sm:text-base">{hoveredWard || "Hover over map"}</div>
                                         </div>
 
                                         <div className="absolute bottom-8 right-8 z-10 flex gap-2">
@@ -663,10 +767,10 @@
                     </section>
 
                     {/* Payment & Tax Collection */}
-                    <section className="py-20 px-6 bg-gradient-to-br from-brand-50 to-green-50">
+                    <section className="py-20 px-4 sm:px-6 bg-gradient-to-br from-brand-50 to-green-50">
                         <div className="max-w-7xl mx-auto">
                             <div className="text-center mb-12">
-                                <h2 className="text-4xl font-bold mb-4">Seamless WhatsApp Payments</h2>
+                                <h2 className="text-3xl sm:text-4xl font-bold mb-4">Seamless WhatsApp Payments</h2>
                                 <p className="text-lg text-slate-600">Property tax, water bills, trade licenses — all payable within WhatsApp</p>
                             </div>
 
@@ -716,21 +820,21 @@
 
                             {/* Revenue Stats */}
                             <div className="mt-12 bg-white rounded-2xl p-8 shadow-xl">
-                                <div className="grid md:grid-cols-4 gap-8 text-center">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                                     <div>
-                                        <p className="text-3xl font-bold text-green-600">45%</p>
+                                        <p className="text-2xl sm:text-3xl font-bold text-green-600">45%</p>
                                         <p className="text-sm text-slate-600 mt-1">↑ Collection Rate</p>
                                     </div>
                                     <div>
-                                        <p className="text-3xl font-bold text-blue-600">3 min</p>
+                                        <p className="text-2xl sm:text-3xl font-bold text-blue-600">3 min</p>
                                         <p className="text-sm text-slate-600 mt-1">Avg Payment Time</p>
                                     </div>
                                     <div>
-                                        <p className="text-3xl font-bold text-purple-600">₹0</p>
+                                        <p className="text-2xl sm:text-3xl font-bold text-purple-600">₹0</p>
                                         <p className="text-sm text-slate-600 mt-1">Transaction Fee</p>
                                     </div>
                                     <div>
-                                        <p className="text-3xl font-bold text-orange-600">98%</p>
+                                        <p className="text-2xl sm:text-3xl font-bold text-orange-600">98%</p>
                                         <p className="text-sm text-slate-600 mt-1">Success Rate</p>
                                     </div>
                                 </div>
@@ -739,14 +843,14 @@
                     </section>
 
                     {/* Analytics Dashboard Preview */}
-                    <section id="analytics" className="py-20 px-6 bg-slate-900 text-white">
+                    <section id="analytics" className="py-20 px-4 sm:px-6 bg-slate-900 text-white">
                         <div className="max-w-7xl mx-auto">
                             <div className="text-center mb-12">
-                                <h2 className="text-4xl font-bold mb-4">Real-Time Civic Intelligence</h2>
-                                <p className="text-xl text-slate-400">Dashboard for administrators to track city operations</p>
+                                <h2 className="text-3xl sm:text-4xl font-bold mb-4">Real-Time Civic Intelligence</h2>
+                                <p className="text-lg sm:text-xl text-slate-400">Dashboard for administrators to track city operations</p>
                             </div>
 
-                            <div className="glass-morphism rounded-2xl p-8">
+                            <div className="glass-morphism rounded-2xl p-4 sm:p-8">
                                 <div className="grid md:grid-cols-3 gap-6 mb-8">
                                     <div className="bg-slate-800 rounded-xl p-6">
                                         <div className="flex justify-between items-start mb-4">
@@ -768,7 +872,7 @@
                                         <div className="flex justify-between items-start mb-4">
                                             <div>
                                                 <p className="text-slate-400 text-sm">Revenue Today</p>
-                                                <p className="text-3xl font-bold mt-1">₹24. 7L</p>
+                                                <p className="text-3xl font-bold mt-1">₹24.7L</p>
                                             </div>
                                             <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
                                                 <Icon name="indian-rupee" size={20} className="text-green-400" />
@@ -800,30 +904,30 @@
                                 {/* Sentiment Analysis */}
                                 <div className="bg-slate-800 rounded-xl p-6">
                                     <h3 className="font-semibold mb-4">Citizen Sentiment Analysis</h3>
-                                    <div className="grid md:grid-cols-5 gap-4">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                                         <div className="text-center">
-                                            <div className="text-4xl mb-2">😊</div>
-                                            <p className="text-2xl font-bold text-green-400">42%</p>
+                                            <div className="text-3xl sm:text-4xl mb-2">😊</div>
+                                            <p className="text-xl sm:text-2xl font-bold text-green-400">42%</p>
                                             <p className="text-xs text-slate-400">Very Happy</p>
                                         </div>
                                         <div className="text-center">
-                                            <div className="text-4xl mb-2">🙂</div>
-                                            <p className="text-2xl font-bold text-blue-400">28%</p>
+                                            <div className="text-3xl sm:text-4xl mb-2">🙂</div>
+                                            <p className="text-xl sm:text-2xl font-bold text-blue-400">28%</p>
                                             <p className="text-xs text-slate-400">Satisfied</p>
                                         </div>
                                         <div className="text-center">
-                                            <div className="text-4xl mb-2">😐</div>
-                                            <p className="text-2xl font-bold text-yellow-400">18%</p>
+                                            <div className="text-3xl sm:text-4xl mb-2">😐</div>
+                                            <p className="text-xl sm:text-2xl font-bold text-yellow-400">18%</p>
                                             <p className="text-xs text-slate-400">Neutral</p>
                                         </div>
                                         <div className="text-center">
-                                            <div className="text-4xl mb-2">😔</div>
-                                            <p className="text-2xl font-bold text-orange-400">8%</p>
+                                            <div className="text-3xl sm:text-4xl mb-2">😔</div>
+                                            <p className="text-xl sm:text-2xl font-bold text-orange-400">8%</p>
                                             <p className="text-xs text-slate-400">Unsatisfied</p>
                                         </div>
                                         <div className="text-center">
-                                            <div className="text-4xl mb-2">😠</div>
-                                            <p className="text-2xl font-bold text-red-400">4%</p>
+                                            <div className="text-3xl sm:text-4xl mb-2">😠</div>
+                                            <p className="text-xl sm:text-2xl font-bold text-red-400">4%</p>
                                             <p className="text-xs text-slate-400">Angry</p>
                                         </div>
                                     </div>
@@ -833,35 +937,33 @@
                     </section>
 
                     {/* CTA Section */}
-                    <section className="py-24 px-6">
+                    <section className="py-24 px-4 sm:px-6">
                         <div className="max-w-4xl mx-auto">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
-                                className="bg-gradient-to-r from-brand-600 to-brand-700 rounded-3xl p-12 text-center text-white shadow-2xl"
+                                className="bg-gradient-to-r from-brand-600 to-brand-700 rounded-3xl p-8 sm:p-12 text-center text-white shadow-2xl"
                             >
-                                <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
                                     Transform Your City in 14 Days
                                 </h2>
-                                <p className="text-xl mb-8 opacity-90">
+                                <p className="text-lg sm:text-xl mb-8 opacity-90">
                                     Join 100+ Indian cities already using WhatsUp.city.  
                                     Setup is instant.  Training is minimal. Impact is immediate.
                                 </p>
                                 <div className="flex flex-wrap gap-4 justify-center">
-                                    <Button variant="secondary" className="text-lg px-8 py-4" onClick={() => setIsDemoOpen(true)}>
+                                    <Button variant="secondary" className="text-lg px-8 py-4 w-full sm:w-auto" onClick={() => setIsDemoOpen(true)}>
                                         <Icon name="calendar" size={20} />
                                         Schedule Free Demo
                                     </Button>
-                                
                                 </div>
-                             
                             </motion.div>
                         </div>
                     </section>
 
                     {/* Updated Footer - Agency & Contact Centric */}
-                    <footer className="bg-slate-900 text-white py-16 px-6 border-t border-slate-800">
+                    <footer className="bg-slate-900 text-white py-16 px-4 sm:px-6 border-t border-slate-800">
                         <div className="max-w-4xl mx-auto text-center space-y-10">
                             
                             {/* Brand & Agency Info */}
@@ -887,7 +989,7 @@
                                         <Icon name="mail" size={20} className="text-white" />
                                     </div>
                                     <p className="text-slate-400 text-sm">Email Us</p>
-                                    <p className="text-xl font-bold">hello@whatsup.city</p>
+                                    <p className="text-xl font-bold break-all">hello@whatsup.city</p>
                                 </a>
 
                                 <a href="tel:02248808695" className="group bg-slate-800 hover:bg-slate-700 p-6 rounded-2xl transition-all border border-slate-700 hover:border-brand-500 flex flex-col items-center gap-3">
